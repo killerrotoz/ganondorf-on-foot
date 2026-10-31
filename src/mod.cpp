@@ -22,6 +22,8 @@
 #include "d/actor/d_a_mant.h"
 #include "Z2AudioLib/Z2Instances.h"
 
+#include <unordered_set>
+
 DEFINE_MOD();
 
 IMPORT_SERVICE(LogService, svc_log);
@@ -49,6 +51,13 @@ HookAction on_gnd_execute_pre(ModContext*, void* args, void*, void*) {
         return HOOK_CONTINUE;
     }
 
+    // Diagnostics: report each Ganondorf once, with the params the spawner gave him.
+    static std::unordered_set<fpc_ProcID> s_seen;
+    if (s_seen.insert(fopAcM_GetID(gnd)).second) {
+        mods::log::info("Ganondorf spawned (proc {}): params={:08X} marker={:02X}",
+                        fopAcM_GetID(gnd), fopAcM_GetParam(gnd), gnd->field_0x5be);
+    }
+
     if (fopAcM_GetParam(gnd) != kOnFootParam || gnd->field_0x5be != kPendingMarker) {
         return HOOK_CONTINUE;  // normal Ganondorf, or already switched
     }
@@ -56,6 +65,11 @@ HookAction on_gnd_execute_pre(ModContext*, void* args, void*, void*) {
     // The on-foot code reads the cape actor every frame, so wait until it has spawned.
     mant_class* mant = (mant_class*)fopAcM_SearchByID(gnd->mMantChildID);
     if (mant == nullptr) {
+        static fpc_ProcID s_waitLogged = 0xFFFFFFFF;
+        if (s_waitLogged != fopAcM_GetID(gnd)) {
+            s_waitLogged = fopAcM_GetID(gnd);
+            mods::log::info("Ganondorf (proc {}): waiting for cape to spawn", fopAcM_GetID(gnd));
+        }
         return HOOK_CONTINUE;
     }
 
