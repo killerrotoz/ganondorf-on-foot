@@ -97,10 +97,10 @@ jobs:
         continue-on-error: true
         run: |
           mkdir -p combined
-          name=$(basename dist/mod-windows-amd64/*.dusk)
+          name=$(basename dist/*.dusk)
           set -o pipefail
           python3 tools/merge_mod.py -o "combined/$name" --symgen ./symgen \
-            dist/*/*.dusk 2>&1 | tee merge.log
+            dist/*.dusk 2>&1 | tee merge.log
 
       - name: Publish build output to dist branch
         if: always()
