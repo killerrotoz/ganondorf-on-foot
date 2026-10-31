@@ -94,6 +94,38 @@ HookAction on_gnd_execute_pre(ModContext*, void* args, void*, void*) {
     return HOOK_CONTINUE;
 }
 
+// Diagnostics: after each frame of an on-foot Ganondorf, log whenever his state or the
+// game's event/cutscene state changes.
+struct Trace {
+    fpc_ProcID id = 0xFFFFFFFF;
+    s16 action = -100, move = -100, demo = -100;
+    int event = -1, drawHorse = -1;
+};
+Trace g_trace;
+
+void on_gnd_execute_post(ModContext*, void* args, void*, void*) {
+    b_gnd_class* gnd = mods::arg<b_gnd_class*>(args, 0);
+    if (gnd == nullptr || fopAcM_GetParam(gnd) != kOnFootParam) {
+        return;
+    }
+    Trace now;
+    now.id = fopAcM_GetID(gnd);
+    now.action = gnd->mActionMode;
+    now.move = gnd->mMoveMode;
+    now.demo = gnd->mDemoCamMode;
+    now.event = dComIfGp_event_runCheck() ? 1 : 0;
+    now.drawHorse = gnd->mDrawHorse ? 1 : 0;
+    if (now.id != g_trace.id || now.action != g_trace.action || now.move != g_trace.move ||
+        now.demo != g_trace.demo || now.event != g_trace.event || now.drawHorse != g_trace.drawHorse)
+    {
+        mods::log::info("GND trace proc {}: action={} move={} demoCam={} eventRunning={} horse={} "
+                        "hp={} playerDist={:.0f}",
+                        now.id, now.action, now.move, now.demo, now.event, now.drawHorse,
+                        (int)gnd->health, fopAcM_searchPlayerDistanceXZ(gnd));
+        g_trace = now;
+    }
+}
+
 }  // namespace
 
 extern "C" {
@@ -102,6 +134,11 @@ MOD_EXPORT ModResult mod_initialize(ModError*) {
     if (result != MOD_OK) {
         mods::log::error("failed to hook daB_GND_Execute ({})", static_cast<int>(result));
         return result;
+    }
+
+    result = mods::hook::add_post<GndExecute>(on_gnd_execute_post);
+    if (result != MOD_OK) {
+        mods::log::warn("failed to install trace post-hook ({})", static_cast<int>(result));
     }
 
     mods::log::info("Ganondorf On Foot loaded: spawn actor 526 with Params 0000F007");
