@@ -1,0 +1,7 @@
+{
+  "id": "com.rotoz.ganondorf_on_foot",
+  "name": "Ganondorf On Foot",
+  "version": "@PROJECT_VERSION@",
+  "author": "rotoz",
+  "description": "Spawn Ganondorf (actor 526, B_gnd) with Params 0000F007 and he starts directly in his on-foot sword duel phase instead of on horseback."
+}

@@ -1,0 +1,21 @@
+Ganondorf On Foot - Dusklight mod (built for Dusklight v2.0.3)
+
+USE
+  Actor Spawner -> Actor ID 526, Params (hex) 0000F007 -> Spawn.
+  He appears without the horse, already in the sword-duel phase.
+  Any other Params (e.g. FFFFFFFF) = normal horseback Ganondorf, untouched.
+
+BUILD ON WINDOWS (one-time setup)
+  1. Install "Build Tools for Visual Studio 2022" with the "Desktop development with C++"
+     workload (includes CMake and Ninja), plus Git for Windows.
+  2. Open "x64 Native Tools Command Prompt for VS 2022", cd into this folder, run:
+        cmake -B build -G Ninja
+        cmake --build build
+     (First run downloads the Dusklight v2.0.3 source for headers; needs internet.)
+  3. Copy build\mods\ganondorf_on_foot.dusk into
+        %APPDATA%\TwilitRealm\Dusklight\mods
+     (or drag the .dusk onto the game window), enable it in the Mods menu.
+
+BUILD WITH GITHUB (no installs)
+  Push this folder to a new GitHub repo. The included Actions workflow builds every
+  platform; download the "mod-combined" artifact from the Actions run.
